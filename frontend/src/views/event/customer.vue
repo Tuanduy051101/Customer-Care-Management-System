@@ -32,6 +32,8 @@ import {
   Customer_Event,
 } from "../common/import";
 
+import { useRouter } from 'vue-router';
+
 export default {
   components: {
     Table,
@@ -169,11 +171,11 @@ export default {
 
       if (entryValueCustomerType.value.length > 0) {
         data.items = data.items.filter((cusWork) => {
-          return cusWork.Customer.Customer_Type._id == entryValueCustomerType.value;
+          return (
+            cusWork.Customer.Customer_Type._id == entryValueCustomerType.value
+          );
         });
       }
-
-  
 
       if (entryValueStatusTask.value.length > 0) {
         data.items = data.items.filter((cusWork) => {
@@ -210,29 +212,37 @@ export default {
 
     onBeforeMount(async () => {
       reFresh();
-
     });
     onMounted(() => {
       // console.log("props.customer_eventListObject", props.customer_eventListObject);
     });
     // computed
     const toString = computed(() => {
-     
-      if (data.choseSearch == "name") {
+      if (data.choseSearch == "customer") {
         return data.items.map((value, index) => {
-          return [value.Customer.name].join("").toLocaleLowerCase();
+          return [
+            value.Customer.name,
+            value.Customer.email,
+            value.Customer.phone,
+          ]
+            .join("")
+            .toLocaleLowerCase();
         });
-      } else if (data.choseSearch == "email") {
+      } else if (data.choseSearch == "address") {
         return data.items.map((value, index) => {
-          return [value.Customer.email].join("").toLocaleLowerCase();
+          return [value.Customer.address].join("").toLocaleLowerCase();
         });
-      } else if (data.choseSearch == "phone") {
+      } else if (data.choseSearch == "age") {
         return data.items.map((value, index) => {
-          return [value.Customer.phone].join("").toLocaleLowerCase();
+          return [new Date().getFullYear() - new Date(value.Customer.birthday).getFullYear()].join("").toLocaleLowerCase();
         });
       } else {
         return data.items.map((value, index) => {
-          return [value.Customer.name, value.Customer.email, value.Customer.phone]
+          return [
+            value.Customer.name,
+            value.Customer.email,
+            value.Customer.phone,
+          ]
             .join("")
             .toLocaleLowerCase();
         });
@@ -240,7 +250,9 @@ export default {
     });
     const filter = computed(() => {
       return data.items.filter((value, index) => {
-        return toString.value[index].includes(data.searchText.toLocaleLowerCase());
+        return toString.value[index].includes(
+          data.searchText.toLocaleLowerCase()
+        );
       });
     });
     const filtered = computed(() => {
@@ -292,7 +304,7 @@ export default {
 
       if (isConfirmed) {
         const rsCustomer = await http_deleteOne(Customer, customerId);
-  
+
         if (rsCustomer.error) {
           alert_error("Lổi ", rsCustomer.msg);
         } else {
@@ -305,57 +317,23 @@ export default {
     const refresh_customer = () => {
       reFresh();
     };
-
+    const goToPageBAndReloadPageB = (data) => {
+      router.push('Customer');
+      sessionStorage.setItem("activeMenu", sessionStorage.getItem("activeMenu") - 1);
+      console.log(data.Customer.name)
+      sessionStorage.setItem("searchCustomer", data.Customer.name);
+      setTimeout(() => {
+        window.location.reload(); 
+      }, 1000); 
+    };
+    const router = useRouter();
     const view = (item) => {
-      data.viewValue = {
-        Customer: {
-          _id: item.Customer._id,
-          name: item.Customer.name,
-          birthday: item.Customer.birthday,
-          avatar: item.Customer.avatar,
-          phone: item.Customer.phone,
-          email: item.Customer.email,
-          address: item.Customer.address,
-        },
-        Customer_Type: {
-          _id: item.Customer.Customer_Type._id,
-          name: item.Customer.Customer_Type.name,
-        },
-        Company_KH: {
-          _id: item.Company_KH._id,
-          name: item.Company_KH.name,
-        },
-        Events: [...item.Customer.Events],
-        Tasks: [...item.Customer.Tasks],
-        Habits: {
-          ...item.Customer.Habits,
-        },
-        _id: item._id,
-        current_workplace: item.current_workplace,
-        work_history: item.work_history,
-        current_position: item.current_position,
-        work_temp: item.work_temp,
-      };
-
-      data.viewCareCus = item.Customer.Tasks.map((value) => {
-      
-        return {
-          start_date: value.start_date,
-          end_date: value.end_date,
-          content: value.content,
-          customerName: item.Customer.name,
-          cycleName: value.Cycle.name, // join bản sao
-          statusName: value.Status_Task.name,
-          EvaluateStar: value.Evaluate.star,
-          comment: value.Comment == null ? "Chưa cập nhật" : value.Comment.content,
-        };
-      });
+      goToPageBAndReloadPageB();
     };
 
     //   formatDateTime,
     // formatDate,
     const edit = (item, isCheck) => {
-
       data.viewValue = {
         Customer: {
           _id: item.Customer._id,
@@ -382,7 +360,6 @@ export default {
       };
 
       data.activeEdit = isCheck;
-
     };
 
     const updateEntryValueCustomerType = (value) => {
@@ -394,7 +371,6 @@ export default {
     };
 
     const handleSelectAll = (value) => {
-
       if (value == false) {
         for (let value1 of data.items) {
           value1.checked = true;
@@ -407,7 +383,6 @@ export default {
 
       for (let value of data.items) {
         props._customerList.push(value);
-
       }
     };
 
@@ -426,9 +401,8 @@ export default {
           <th>Số điện thoại</th>
         </tr>
       </thead> <tbody>`;
-    
+
         for (let value of deleteArray) {
-        
           contentAlert += `<tr>
           <td>${value.Customer.name}</td>
           <td>${value.Customer.email}</td>
@@ -446,7 +420,10 @@ export default {
         if (isConfirmed) {
           let checkDeleteAll = false;
           for (let valueDelete of deleteArray) {
-            const rsCustomer = await http_deleteOne(Customer, valueDelete.Customer._id);
+            const rsCustomer = await http_deleteOne(
+              Customer,
+              valueDelete.Customer._id
+            );
             if (rsCustomer.error) {
               alert_error("Lổi ", rsCustomer.msg);
               checkDeleteAll = false;
@@ -466,7 +443,8 @@ export default {
 
     const isStringFound = (_id) => {
       return data.customer_eventList.some(
-        (item) => item.CustomerId.toString() == _id && item.EventId == props.item._id
+        (item) =>
+          item.CustomerId.toString() == _id && item.EventId == props.item._id
       );
     };
 
@@ -525,6 +503,7 @@ export default {
       deleteMany,
       reFresh,
       isStringFound,
+      goToPageBAndReloadPageB
     };
   },
 };
@@ -545,7 +524,8 @@ export default {
             :options="data.customerType"
             @update:entryValue="
               (value, value1) => (
-                updateEntryValueCustomerType(value), (entryNameCustomerType = value1.name)
+                updateEntryValueCustomerType(value),
+                (entryNameCustomerType = value1.name)
               )
             "
             @refresh="
@@ -563,7 +543,8 @@ export default {
             :options="data.customerStatus"
             @update:entryValue="
               (value, value1) => (
-                updateEntryValueStatusTask(value), (entryNameStatusTask = value1.name)
+                updateEntryValueStatusTask(value),
+                (entryNameStatusTask = value1.name)
               )
             "
             @refresh="
@@ -584,6 +565,10 @@ export default {
         <Select
           class="d-flex justify-content-start"
           :options="[
+            {
+              name: 1,
+              value: 1,
+            },
             {
               name: 5,
               value: 5,
@@ -614,23 +599,26 @@ export default {
           :entryValue="data.searchText"
           @choseSearch="
             async (value) => (
-              (data.choseSearch = value),
-              (data.currentPage = 1)
+              (data.choseSearch = value), (data.currentPage = 1)
             )
           "
           @refresh="(data.entryValue = 'All'), (data.currentPage = 1)"
           :options="[
             {
-              _id: 'name',
-              name: 'Tìm kiếm theo tên',
+              _id: 'customer',
+              name: 'Tìm kiếm theo khách hàng (tên, email, sđt)',
             },
             {
-              _id: 'email',
-              name: 'Tìm kiếm theo email',
+              _id: 'address',
+              name: 'Tìm kiếm theo địa chỉ',
             },
             {
-              _id: 'phone',
-              name: 'Tìm kiếm theo số điện thoại',
+              _id: 'age',
+              name: 'Tìm kiếm theo độ tuổi',
+            },
+            {
+              _id: 'gender',
+              name: 'Tìm kiếm theo giới tính',
             },
           ]"
         />
@@ -639,7 +627,14 @@ export default {
     <!-- Table -->
     <Table
       :items="setPages"
-      :fields="['Tên', 'Email', 'Sdt', 'Công việc', 'Công ty', 'Loại khách hàng']"
+      :fields="[
+        'Tên',
+        'Email',
+        'Sdt',
+        'Công việc',
+        'Công ty',
+        'Loại khách hàng',
+      ]"
       :selectAll="data.selectAll"
       :startRow="data.startRow"
       :activeAction="true"
@@ -647,7 +642,7 @@ export default {
       @selectAll="(value) => handleSelectAll(value)"
       @delete="handleDelete"
       @edit="edit"
-      @view="view"
+      @view="(value) => goToPageBAndReloadPageB(value)"
     />
     <!-- Pagination -->
     <Pagination
@@ -659,7 +654,7 @@ export default {
       @update:currentPage="(value) => (data.currentPage = value)"
       class="mx-3"
     />
-    <View :item="data.viewValue" :itemViewCareCus="data.viewCareCus" />
+    <!-- <View :item="data.viewValue" :itemViewCareCus="data.viewCareCus" /> -->
   </div>
   <button
     type="button"

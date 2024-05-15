@@ -7,10 +7,10 @@ const config = {
 };
 
 // Khởi tạo kết nối database
-const sequelize = new Sequelize("crm", "root", "Phuc#0122", {
+const sequelize = new Sequelize("personal_crm_system_3", "root", "Quyber2015", {
   host: "localhost",
   dialect: "mysql",
-  port: 6000,
+  // port: 6000,
 });
 
 // connect to the database
@@ -34,3 +34,4 @@ const createTable = () => {
 };
 
 module.exports = { config, connection, sequelize, createTable };
+

@@ -256,6 +256,7 @@ export default {
                       create();
                     }
                   "
+                  @close="$emit('close', false)"
                 />
               </div>
             </div>

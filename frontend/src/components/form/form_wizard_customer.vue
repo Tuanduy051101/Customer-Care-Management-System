@@ -171,7 +171,7 @@ export default {
         (data.items = data.items.filter((value1, index) => {
           
           return value1.name.includes(value) || value.length == 0;
-        })),
+        }))
        
     };
 

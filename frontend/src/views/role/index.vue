@@ -404,6 +404,10 @@ export default {
           class="d-flex justify-content-start"
           :options="[
             {
+              name: 1,
+              value: 1,
+            },
+            {
               name: 5,
               value: 5,
             },

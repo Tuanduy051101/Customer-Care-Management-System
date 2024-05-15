@@ -109,7 +109,7 @@ export default {
           </form>
           <div class="form-group">
             <label for="duration">Danh sách khách hàng tham gia sự kiện:</label>
-            <Table_Customer :customer_event="item.Customers" />
+            <Table_Customer :customer_event="item.Customers" @close="$emit('close', false)" />
           </div>
           <div class="mt-2"></div>
         </div>

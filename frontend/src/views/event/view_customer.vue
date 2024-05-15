@@ -34,6 +34,7 @@ import {
   alert_mail
 } from "../common/import";
 
+import { useRouter } from 'vue-router';
 
 import Swal from 'sweetalert2'
 export default {
@@ -345,8 +346,9 @@ export default {
     const refresh_customer = () => {
       reFresh();
     };
-
+    const router = useRouter();
     const view = (item) => {
+      // router.push({ name: "Customer.view", params: { id: _id } });
       data.viewValue = {
         Customer: {
           _id: item.Customer._id,
@@ -581,6 +583,16 @@ export default {
       alert_mail(newArray)
     };
 
+    const goToPageBAndReloadPageB = (data) => {
+      router.push('Customer');
+      sessionStorage.setItem("activeMenu", sessionStorage.getItem("activeMenu") - 1);
+      console.log(data.Customer.name)
+      sessionStorage.setItem("searchCustomer", data.Customer.name);
+      setTimeout(() => {
+        window.location.reload(); 
+      }, 1000); 
+    };
+
     return {
       update,
       deleteOne,
@@ -604,6 +616,7 @@ export default {
       isStringFound,
       selectRef,
       handleSendMail,
+      goToPageBAndReloadPageB,
     };
   },
 };
@@ -667,6 +680,10 @@ export default {
         <Select
           class="d-flex justify-content-start"
           :options="[
+            {
+              name: 1,
+              value: 1,
+            },
             {
               name: 5,
               value: 5,
@@ -747,7 +764,7 @@ export default {
       @selectAll="(value) => handleSelectAll(value)"
       @delete="handleDelete"
       @edit="edit"
-      @view="view"
+      @view="(value) => goToPageBAndReloadPageB(value)"
     />
     <!-- Pagination -->
     <Pagination

@@ -37,6 +37,8 @@ import {
   isCreateHabit,
 } from "../../use/getSessionItem";
 
+import { useRouter } from "vue-router";
+
 export default {
   components: {
     Table,
@@ -64,7 +66,7 @@ export default {
       startRow: 0,
       endRow: 0,
       currentPage: 1,
-      searchText: "",
+      searchText:  sessionStorage.getItem("searchCustomer") || '',
       itemAdd: {
         name: "",
         birthdate: "",
@@ -133,7 +135,7 @@ export default {
       eventAdd: {
         name: "",
         content: "",
-        time_duration: 'eventAdd.start_time',
+        time_duration: "eventAdd.start_time",
         start_time: "",
         end_time: "",
         place: "",
@@ -182,8 +184,6 @@ export default {
         });
       }
 
-
-
       if (entryValueStatusTask.value.length > 0) {
         data.items = data.items.filter((cusWork) => {
           return (
@@ -209,11 +209,9 @@ export default {
     };
 
     const showAddHabit = () => {
-
       data.customerValue = {};
       data.showAddHabit = false;
       for (let value of data.items) {
-
         if (value.checked == true) {
           data.customerValue = value;
           data.showAddHabit = true;
@@ -224,14 +222,13 @@ export default {
         alert_warning(`Thêm thói quen khách hàng`, `Vui lòng chọn khách hàng.`);
       }
     };
-
+    const router = useRouter();
     onBeforeMount(() => {
       reFresh();
     });
 
     // computed
     const toString = computed(() => {
-     
       if (data.choseSearch == "name") {
         return data.items.map((value, index) => {
           return [value.Customer.name].join("").toLocaleLowerCase();
@@ -356,7 +353,6 @@ export default {
       };
 
       data.viewCareCus = item.Customer.Tasks.map((value) => {
-
         return {
           start_date: formatDate(value.start_date),
           end_date: formatDate(value.end_date),
@@ -376,7 +372,7 @@ export default {
           name: item.name,
           time_duration: formatDateTime_2(item.time_duration),
           content: item.content,
-          place: item.place != null ? item.place : 'không có'
+          place: item.place != null ? item.place : "không có",
         };
       });
     };
@@ -386,7 +382,7 @@ export default {
     const edit = (item, isCheck) => {
       data.activeShowEdit = true;
       reFresh();
-    
+
       data.viewValue = {
         Customer: {
           _id: item.Customer._id,
@@ -413,7 +409,6 @@ export default {
       };
 
       data.activeEdit = isCheck;
-      
     };
 
     const updateEntryValueCustomerType = (value) => {
@@ -425,7 +420,6 @@ export default {
     };
 
     const handleSelectAll = (value) => {
-     
       if (value == false) {
         for (let value1 of data.items) {
           value1.checked = true;
@@ -452,9 +446,8 @@ export default {
           <th>Số điện thoại</th>
         </tr>
       </thead> <tbody>`;
-        
+
         for (let value of deleteArray) {
-          
           contentAlert += `<tr>
           <td>${value.Customer.name}</td>
           <td>${value.Customer.email}</td>
@@ -504,7 +497,6 @@ export default {
     });
 
     watch(entryValueStatusTask, (newValue, oldValue) => {
-      
       if (newValue != "") {
         data.currentPage = 1;
         reFresh();
@@ -519,7 +511,7 @@ export default {
         return index1 != index;
       });
     };
-
+    console.log(sessionStorage.getItem("searchCustomer"))
     return {
       update,
       deleteOne,
@@ -653,9 +645,7 @@ export default {
           :entryValue="data.searchText"
           @choseSearch="
             async (value) => (
-             
-              (data.choseSearch = value),
-              (data.currentPage = 1)
+              (data.choseSearch = value), (data.currentPage = 1)
             )
           "
           @refresh="(data.entryValue = 'All'), (data.currentPage = 1)"
@@ -746,7 +736,7 @@ export default {
       :showActionList="[
         isReadCustomer() ? true : false,
         isEditCustomer() ? true : false,
-        isDeleteCustomer() ? true : false
+        isDeleteCustomer() ? true : false,
       ]"
     />
     <!-- Pagination -->

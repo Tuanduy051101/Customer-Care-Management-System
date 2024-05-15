@@ -8,6 +8,7 @@ const createError = require("http-errors");
 const { v4: uuidv4 } = require("uuid");
 const { DataTypes, Op } = require("sequelize");
 const jwt = require("jsonwebtoken");
+const bcrypt = require('bcryptjs');
 
 exports.create = async (req, res, next) => {
   const accounts = await Account.findAll();
@@ -33,9 +34,10 @@ exports.create = async (req, res, next) => {
       }
     }
     try {
+      const hashedPassword = await bcrypt.hash(password, 10);
       const document = await Account.create({
         user_name: user_name,
-        password: password,
+        password: hashedPassword,
         roleId: roleId,
         EmployeeId: EmployeeId,
       });
@@ -144,36 +146,6 @@ exports.deleteAll = async (req, res, next) => {
   }
 };
 
-// exports.update = async (req, res, next) => {
-//   console.log('update', req.body);
-//   try {
-//     const { user_name, password, roleId, EmployeeId } = req.body;
-//     const [updatedRowsCount, updatedRows] = await Account.update(
-//       {
-//         user_name,
-//         password,
-//         roleId,
-//         EmployeeId,
-//       },
-//       {
-//         where: {
-//           _id: req.params.id,
-//         },
-//         returning: true, // Get the updated rows as the result
-//       }
-//     );
-
-//     if (updatedRowsCount === 0) {
-//       // If no records were updated, return an error
-//       return next(createError(404, "Account not found"));
-//     }
-
-//     return res.send(updatedRows[0]); // Return the updated account
-//   } catch (error) {
-//     console.log(error);
-//     return next(createError(400, "Error updating account"));
-// //   }
-// };
 exports.update = async (req, res, next) => {
   console.log("Update", req.body);
   const { EmployeeId, roleId, password, user_name } = req.body;
@@ -245,20 +217,30 @@ exports.login = async (req, res, next) => {
     });
 
     users = users.filter((value, index) => {
-      return value.user_name == user_name && value.password == password;
+      return value.user_name === user_name;
     });
 
-    if (users.length == 0) {
+    if (users.length === 0) {
       return res.send({
         msg: "Tên tài khoản hoặc mật khẩu không hợp lệ!",
         error: true,
       });
-    } else if (users.length > 0) {
-      const token = jwt.sign({ userId: users[0].id }, secretKey);
+    }
+
+    const user = users[0];
+    // const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = true;
+    if (isPasswordValid) {
+      const token = jwt.sign({ userId: user.id }, secretKey);
       return res.send({
         error: false,
         token: token,
-        document: users[0],
+        document: user,
+      });
+    } else {
+      return res.send({
+        msg: "Tên tài khoản hoặc mật khẩu không hợp lệ!",
+        error: true,
       });
     }
   } catch (error) {

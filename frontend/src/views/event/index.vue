@@ -118,9 +118,31 @@ export default {
       showView: false,
     });
     const toString = computed(() => {
-  
+      if (data.choseSearch == "name") {
+        return data.items.map((value, index) => {
+          return [value.name].join("").toLocaleLowerCase();
+        });
+      } else if (data.choseSearch == "place") {
+        return data.items.map((value, index) => {
+          return [value.place].join("").toLocaleLowerCase();
+        });
+      } else if (data.choseSearch == "amountCustomer") {
+        return data.items.map((value, index) => {
+          return [value.totalCustomer].join("").toLocaleLowerCase();
+        });
+      } else if (data.choseSearch == "customer") {
+        return data.items.map((value, index) => {
+          return [
+            value.Customers.map((Customer) => Customer.name).join(""),
+            value.Customers.map((Customer) => Customer.phone).join(""),
+            value.Customers.map((Customer) => Customer.email).join(""),
+          ]
+            .join("")
+            .toLocaleLowerCase();
+        });
+      }
       return data.items.map((value, index) => {
-        return [value.name].join("").toLocaleLowerCase();
+        return [value.name, value.place].join("").toLocaleLowerCase();
       });
     });
     const filter = computed(() => {
@@ -240,7 +262,7 @@ export default {
           event.time_duration
         )} không ?`
       );
-  
+
       if (isConfirmed == true) {
         const result = await http_deleteOne(Event, _id);
         alert_success(
@@ -268,12 +290,12 @@ export default {
           <th>Địa điểm</th>
         </tr>
       </thead> <tbody>`;
-        
+
         for (let value of deleteArray) {
           contentAlert += `<tr>
           <td>${value.name}</td>
           <td>${value.time_duration_format}</td>
-          <td>${value.place != null ? value.place : 'không có'}</td>
+          <td>${value.place != null ? value.place : "không có"}</td>
         </tr>`;
         }
         contentAlert += `</tbody>
@@ -304,7 +326,6 @@ export default {
     };
 
     const edit = async (editValue) => {
-    
       editValue.time_duration = [editValue.start_time, editValue.end_time].join(
         " to "
       );
@@ -318,7 +339,6 @@ export default {
     };
 
     const view = async (item) => {
-     
       await refresh();
       item.start_time = item.time_duration.split(" to ")[0].toUpperCase();
       item.end_time = item.time_duration.split(" to ")[1].toUpperCase();
@@ -355,12 +375,10 @@ export default {
         value.totalCustomer = value.Customers.length;
       }
 
-
       // filter
       if (data.startTimeValue.length > 0) {
         if (data.endTimeValue.length == 0) {
           data.items = data.items.filter((value, index) => {
-            
             return value.start_time == data.startTimeValue.toLocaleLowerCase();
           });
         } else {
@@ -375,7 +393,6 @@ export default {
         }
       } else if (data.endTimeValue.length > 0) {
         data.items = data.items.filter((value, index) => {
-          
           return value.end_time == data.endTimeValue.toLocaleLowerCase();
         });
       }
@@ -388,11 +405,9 @@ export default {
         data.items[i].Customers = events[i].Customers;
         // data.items[i].checked = false;
       }
-     
     };
 
     const handleSelectAll = (value) => {
-    
       if (value == false) {
         for (let value1 of data.items) {
           value1.checked = true;
@@ -413,7 +428,6 @@ export default {
     // Hàm callback được gọi trước khi component được mount (load)
     onBeforeMount(async () => {
       refresh();
-    
     });
 
     return {
@@ -474,10 +488,7 @@ export default {
             :entryValue="data.startTimeValue"
             @update:entryValue="
               (value) => (
-              
-                (data.startTimeValue = value),
-                (data.currentPage = 1),
-                refresh()
+                (data.startTimeValue = value), (data.currentPage = 1), refresh()
               )
             "
             @refresh="
@@ -491,11 +502,7 @@ export default {
             :title="`Thời gian kết thúc`"
             :entryValue="data.endTimeValue"
             @update:entryValue="
-              (value) => (
-            
-                (data.endTimeValue = value),
-                refresh()
-              )
+              (value) => ((data.endTimeValue = value), refresh())
             "
             @refresh="
               (data.endTimeValue = ''), refresh(), (data.currentPage = 1)
@@ -515,6 +522,10 @@ export default {
         <Select
           class="d-flex justify-content-start"
           :options="[
+            {
+              name: 2,
+              value: 2,
+            },
             {
               name: 5,
               value: 5,
@@ -545,16 +556,26 @@ export default {
           :entryValue="data.searchText"
           @choseSearch="
             async (value) => (
-              
-              (data.choseSearch = value),
-              (data.currentPage = 1)
+              (data.choseSearch = value), (data.currentPage = 1)
             )
           "
           @refresh="(data.entryValue = 'All'), (data.currentPage = 1)"
           :options="[
             {
               _id: 'name',
-              name: 'Tìm kiếm theo tên',
+              name: 'Tìm kiếm theo tên sự kiện',
+            },
+            {
+              _id: 'place',
+              name: 'Tìm kiếm địa điểm sự kiện',
+            },
+            {
+              _id: 'amountCustomer',
+              name: 'Tìm kiếm theo số lượng khách hàng',
+            },
+            {
+              _id: 'customer',
+              name: 'Tìm kiếm theo khách hàng (tên, sđt, email)',
             },
           ]"
         />
@@ -596,6 +617,7 @@ export default {
           v-if="data.showSetEvent"
           :item="data.eventValue"
           @refresh1="refresh1()"
+          @close="data.showSetEvent = false"
         />
       </div>
     </div>
@@ -659,7 +681,11 @@ export default {
     @cancel="data.activeEdit = false"
     @edit="edit(data.editValue)"
   />
-  <View v-if="data.showView" :item="data.viewValue" />
+  <View
+    v-if="data.showView"
+    :item="data.viewValue"
+    @close="data.showView == false"
+  />
 </template>
 
 <style scoped>

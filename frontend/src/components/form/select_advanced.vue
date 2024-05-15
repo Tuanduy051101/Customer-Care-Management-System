@@ -11,7 +11,7 @@
       {{ activeSelect == true ? "expand_less" : "expand_more" }}</span
     >
     <input
-      type="text"
+      type="search"
       class="px-2"
       v-model="searchText"
       style="font-size: 16px;"
